@@ -4,6 +4,7 @@ from archforge.core.renderer import TemplateRenderer
 
 PREFIX = "architectures/pragmatic/fastapi/project"
 MODULE_PREFIX = "architectures/pragmatic/fastapi/module"
+DJANGO_PREFIX = "architectures/pragmatic/django/project"
 
 
 def test_render_tree_fastapi_project():
@@ -70,3 +71,25 @@ def test_render_module_templates():
     rendered = renderer.render_tree(MODULE_PREFIX, context)
     assert "routes.py" in rendered
     assert "integrations.py" not in rendered
+
+
+def test_render_django_project():
+    renderer = TemplateRenderer()
+    context = {
+        "project_name": "demo",
+        "package_name": "demo",
+        "framework": "django",
+        "architecture": "pragmatic",
+        "style": "pragmatic",
+        "python_version": "3.12",
+        "features": {
+            "docker": False,
+            "tests": True,
+            "ci": False,
+            "lint": True,
+            "observability": False,
+        },
+    }
+    rendered = renderer.render_tree(DJANGO_PREFIX, context)
+    assert "manage.py" in rendered
+    assert "src/demo/settings.py" in rendered

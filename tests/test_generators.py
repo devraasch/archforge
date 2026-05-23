@@ -85,3 +85,27 @@ package_name = "legacy"
     module_dir = module_gen.generate(project, "users", crud=True)
     assert module_dir.is_dir()
     assert project.config.architecture.value == "pragmatic"
+
+
+def test_django_project_generation(tmp_path: Path):
+    renderer = TemplateRenderer()
+    writer = FileSystemWriter()
+    generator = ProjectGenerator(renderer=renderer, writer=writer)
+    output = tmp_path / "djangodemo"
+    generator.generate(
+        name="djangodemo",
+        framework=Framework.DJANGO,
+        architecture=Architecture.PRAGMATIC,
+        output_dir=output,
+        features=ProjectFeatures(tests=True),
+        sync_uv=False,
+    )
+    assert (output / "manage.py").is_file()
+    assert (output / "src/djangodemo/settings.py").is_file()
+
+    project = ArchforgeProject.load(output)
+    module_gen = ModuleGenerator(renderer=renderer, writer=writer)
+    module_dir = module_gen.generate(project, "users", crud=True)
+    assert (module_dir / "views.py").is_file()
+    urls = (output / "src/djangodemo/app/urls.py").read_text()
+    assert 'path("users/", include("djangodemo.app.users.urls"))' in urls

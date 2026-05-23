@@ -1,0 +1,40 @@
+"""Business logic for {{ module_name }}."""
+
+from __future__ import annotations
+
+from uuid import UUID
+
+from {{ package_name }}.app.{{ module_name }}.entities import {{ module_class }}
+from {{ package_name }}.app.{{ module_name }}.repositories import {{ module_class }}Repository
+from {{ package_name }}.app.{{ module_name }}.schemas import {{ module_class }}Create, {{ module_class }}Update
+
+
+class {{ module_class }}Service:
+    def __init__(self, repository: {{ module_class }}Repository | None = None) -> None:
+        self._repository = repository or {{ module_class }}Repository()
+
+{% if options.crud %}
+    def list_items(self) -> list[{{ module_class }}]:
+        return self._repository.list()
+
+    def get_item(self, item_id: UUID) -> {{ module_class }} | None:
+        return self._repository.get(item_id)
+
+    def create_item(self, payload: {{ module_class }}Create) -> {{ module_class }}:
+        item = {{ module_class }}(**payload.model_dump())
+        return self._repository.add(item)
+
+    def update_item(self, item_id: UUID, payload: {{ module_class }}Update) -> {{ module_class }} | None:
+        item = self._repository.get(item_id)
+        if item is None:
+            return None
+        for key, value in payload.model_dump(exclude_unset=True).items():
+            setattr(item, key, value)
+        return item
+
+    def delete_item(self, item_id: UUID) -> bool:
+        return self._repository.delete(item_id)
+{% else %}
+    def list_items(self) -> list[{{ module_class }}]:
+        return self._repository.list()
+{% endif %}

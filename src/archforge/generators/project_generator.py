@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from archforge.core.capabilities import format_supported_matrix
 from archforge.core.config import ProjectConfig, ProjectFeatures
 from archforge.core.console import print_info, track_generation
 from archforge.core.context import InitContext, build_init_context
@@ -87,6 +88,6 @@ class ProjectGenerator:
             msg = (
                 f"Template bundle not available for "
                 f"{context.framework.value} + {context.architecture.value}. "
-                "MVP supports: fastapi + pragmatic."
+                f"Supported: {format_supported_matrix(self.renderer.root)}."
             )
             raise NotImplementedError(msg)

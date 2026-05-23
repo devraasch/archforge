@@ -1,0 +1,48 @@
+# {{ project_name }}
+
+Projeto gerado com [archforge](https://github.com/archforge/archforge).
+
+## Stack
+
+- **Framework:** Django
+- **Architecture:** Pragmatic
+- **Python:** {{ python_version }}+
+
+## Início rápido
+
+```bash
+uv sync
+uv run python manage.py runserver
+```
+
+App disponível em `http://127.0.0.1:8000`.
+
+Health check: `http://127.0.0.1:8000/health/`
+
+## Estrutura
+
+```
+src/{{ package_name }}/
+├── settings.py
+├── urls.py
+└── app/
+    └── <module>/
+        ├── entities.py
+        ├── services.py
+        ├── repositories.py
+        ├── views.py
+        ├── urls.py
+        └── schemas.py
+```
+
+## Criar módulos
+
+```bash
+archforge make module <nome>
+```
+
+## Testes
+
+```bash
+uv run pytest
+```

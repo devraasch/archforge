@@ -79,8 +79,9 @@ O `.archforge.toml` grava `architecture = "pragmatic"`. Projetos antigos com `st
 | Framework | MVP |
 |-----------|-----|
 | FastAPI + Pragmatic | ✅ |
+| Django + Pragmatic | ✅ |
 | FastAPI + Canonical | 🔜 |
-| Django | 🔜 |
+| Django + Canonical | 🔜 |
 | MCP | 🔜 |
 | CLI | 🔜 |
 

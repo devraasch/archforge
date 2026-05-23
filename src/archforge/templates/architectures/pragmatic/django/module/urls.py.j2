@@ -1,0 +1,15 @@
+"""URL routes for {{ module_name }}."""
+
+from django.urls import path
+
+from {{ package_name }}.app.{{ module_name }} import views
+
+urlpatterns = [
+    path("", views.list_{{ module_name }}, name="{{ module_name }}-list"),
+{% if options.crud %}
+    path("create/", views.create_{{ module_name }}, name="{{ module_name }}-create"),
+    path("<uuid:item_id>/", views.get_{{ module_name }}, name="{{ module_name }}-detail"),
+    path("<uuid:item_id>/update/", views.update_{{ module_name }}, name="{{ module_name }}-update"),
+    path("<uuid:item_id>/delete/", views.delete_{{ module_name }}, name="{{ module_name }}-delete"),
+{% endif %}
+]

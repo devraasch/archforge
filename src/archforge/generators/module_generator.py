@@ -7,6 +7,7 @@ from pathlib import Path
 
 from archforge.core.console import track_generation
 from archforge.core.context import ModuleContext, build_module_context, module_slug
+from archforge.core.enums import Framework
 from archforge.core.filesystem import FileSystemWriter
 from archforge.core.project import ArchforgeProject
 from archforge.core.renderer import TemplateRenderer
@@ -65,8 +66,10 @@ class ModuleGenerator:
         }
         self.writer.write_many(target_files)
 
-        if register_routes and config.framework.value == "fastapi":
-            self._patch_router(project, context)
+        if register_routes and config.framework == Framework.FASTAPI:
+            self._patch_fastapi_router(project, context)
+        elif register_routes and config.framework == Framework.DJANGO:
+            self._patch_django_urls(project, context)
 
         return module_dir
 
@@ -79,8 +82,8 @@ class ModuleGenerator:
             )
             raise NotImplementedError(msg)
 
-    def _patch_router(self, project: ArchforgeProject, context: ModuleContext) -> None:
-        """Register module routes in the application router."""
+    def _patch_fastapi_router(self, project: ArchforgeProject, context: ModuleContext) -> None:
+        """Register module routes in the FastAPI application router."""
         router_path = (
             project.root
             / f"src/{context.config.package_name}/app/router.py"
@@ -113,3 +116,27 @@ class ModuleGenerator:
             lines.append("")
             lines.append(include_line)
         self.writer.write_file(router_path, "\n".join(lines) + "\n", overwrite=True)
+
+    def _patch_django_urls(self, project: ArchforgeProject, context: ModuleContext) -> None:
+        """Register module URLs in the Django app urlconf."""
+        urls_path = project.root / f"src/{context.config.package_name}/app/urls.py"
+        if not urls_path.exists():
+            return
+
+        pkg = context.config.package_name
+        mod = context.module_name
+        include_line = f'path("{mod}/", include("{pkg}.app.{mod}.urls")),'
+
+        content = urls_path.read_text(encoding="utf-8")
+        if include_line in content:
+            return
+
+        lines = content.splitlines()
+        insert_idx = len(lines)
+        for idx, line in enumerate(lines):
+            if line.strip() == "]":
+                insert_idx = idx
+                break
+
+        lines.insert(insert_idx, f"    {include_line}")
+        self.writer.write_file(urls_path, "\n".join(lines) + "\n", overwrite=True)

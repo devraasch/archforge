@@ -8,6 +8,13 @@ from pathlib import Path
 import questionary
 from questionary import Style
 
+from archforge.core.capabilities import (
+    ARCHITECTURE_LABELS,
+    FRAMEWORK_LABELS,
+    available_architectures,
+    available_frameworks,
+    get_template_root,
+)
 from archforge.core.config import ProjectFeatures
 from archforge.core.context import slugify
 from archforge.core.enums import Architecture, Framework
@@ -35,6 +42,8 @@ class InitWizardResult:
 
 
 def run_init_wizard(default_dir: Path | None = None) -> InitWizardResult:
+    template_root = get_template_root()
+
     name = questionary.text(
         "Project name:",
         validate=lambda value: bool(value.strip()) or "Name is required.",
@@ -53,29 +62,43 @@ def run_init_wizard(default_dir: Path | None = None) -> InitWizardResult:
     if output_raw is None:
         raise KeyboardInterrupt
 
-    framework_raw = questionary.select(
-        "Framework:",
-        choices=[f.value for f in Framework],
-        style=WIZARD_STYLE,
-    ).ask()
-    if framework_raw is None:
-        raise KeyboardInterrupt
+    architectures = available_architectures(template_root)
+    if not architectures:
+        msg = "No architecture templates are available in this installation."
+        raise RuntimeError(msg)
 
     architecture_raw = questionary.select(
         "Architecture:",
         choices=[
             questionary.Choice(
-                "Pragmatic — flat modules (entities, services, routes…)",
-                Architecture.PRAGMATIC.value,
-            ),
-            questionary.Choice(
-                "Canonical — domain / application / infrastructure / interfaces",
-                Architecture.CANONICAL.value,
-            ),
+                ARCHITECTURE_LABELS.get(architecture, architecture.value),
+                architecture.value,
+            )
+            for architecture in architectures
         ],
         style=WIZARD_STYLE,
     ).ask()
     if architecture_raw is None:
+        raise KeyboardInterrupt
+
+    selected_architecture = Architecture(architecture_raw)
+    frameworks = available_frameworks(selected_architecture, template_root)
+    if not frameworks:
+        msg = f"No frameworks available for architecture '{selected_architecture.value}'."
+        raise RuntimeError(msg)
+
+    framework_raw = questionary.select(
+        "Framework:",
+        choices=[
+            questionary.Choice(
+                FRAMEWORK_LABELS.get(framework, framework.value),
+                framework.value,
+            )
+            for framework in frameworks
+        ],
+        style=WIZARD_STYLE,
+    ).ask()
+    if framework_raw is None:
         raise KeyboardInterrupt
 
     docker = questionary.confirm("Include Docker?", default=False, style=WIZARD_STYLE).ask()
@@ -109,7 +132,7 @@ def run_init_wizard(default_dir: Path | None = None) -> InitWizardResult:
     return InitWizardResult(
         name=name.strip(),
         framework=Framework(framework_raw),
-        architecture=Architecture(architecture_raw),
+        architecture=selected_architecture,
         output_dir=Path(output_raw).expanduser().resolve(),
         features=ProjectFeatures(
             docker=docker,

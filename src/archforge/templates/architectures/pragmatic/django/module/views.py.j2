@@ -1,0 +1,68 @@
+"""HTTP views for {{ module_name }}."""
+
+from __future__ import annotations
+
+import json
+from uuid import UUID
+
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
+from pydantic import ValidationError
+
+from {{ package_name }}.app.{{ module_name }}.schemas import (
+    {{ module_class }}Create,
+    {{ module_class }}Read,
+    {{ module_class }}Update,
+)
+from {{ package_name }}.app.{{ module_name }}.services import {{ module_class }}Service
+
+service = {{ module_class }}Service()
+
+
+def _read(item) -> dict:
+    return {{ module_class }}Read.model_validate(item).model_dump(mode="json")
+
+
+@require_http_methods(["GET"])
+def list_{{ module_name }}(request: HttpRequest) -> JsonResponse:
+    payload = [_read(item) for item in service.list_items()]
+    return JsonResponse(payload, safe=False)
+
+
+{% if options.crud %}
+@require_http_methods(["POST"])
+def create_{{ module_name }}(request: HttpRequest) -> JsonResponse:
+    try:
+        body = {{ module_class }}Create.model_validate_json(request.body)
+    except ValidationError as exc:
+        return JsonResponse(exc.errors(), status=400)
+    item = service.create_item(body)
+    return JsonResponse(_read(item), status=201)
+
+
+@require_http_methods(["GET"])
+def get_{{ module_name }}(request: HttpRequest, item_id: UUID) -> JsonResponse:
+    item = service.get_item(item_id)
+    if item is None:
+        return JsonResponse({"detail": "Not found"}, status=404)
+    return JsonResponse(_read(item))
+
+
+@require_http_methods(["PATCH"])
+def update_{{ module_name }}(request: HttpRequest, item_id: UUID) -> JsonResponse:
+    try:
+        body = {{ module_class }}Update.model_validate(json.loads(request.body or b"{}"))
+    except ValidationError as exc:
+        return JsonResponse(exc.errors(), status=400)
+    item = service.update_item(item_id, body)
+    if item is None:
+        return JsonResponse({"detail": "Not found"}, status=404)
+    return JsonResponse(_read(item))
+
+
+@require_http_methods(["DELETE"])
+def delete_{{ module_name }}(request: HttpRequest, item_id: UUID) -> HttpResponse:
+    if not service.delete_item(item_id):
+        return JsonResponse({"detail": "Not found"}, status=404)
+    return HttpResponse(status=204)
+{% endif %}

@@ -1,0 +1,7 @@
+"""Shared application views."""
+
+from django.http import HttpRequest, JsonResponse
+
+
+def health(request: HttpRequest) -> JsonResponse:
+    return JsonResponse({"status": "ok"})
