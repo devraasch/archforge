@@ -1,0 +1,46 @@
+# {{ project_name }}
+
+Projeto gerado com [archforge](https://github.com/archforge/archforge).
+
+## Stack
+
+- **Framework:** FastAPI
+- **Estilo:** Pragmatic
+- **Python:** {{ python_version }}+
+
+## Início rápido
+
+```bash
+uv sync
+uv run {{ package_name }}
+```
+
+API disponível em `http://127.0.0.1:8000`.
+
+Documentação interativa: `http://127.0.0.1:8000/docs`
+
+## Estrutura
+
+```
+src/{{ package_name }}/
+├── main.py
+└── app/
+    └── <module>/
+        ├── entities.py
+        ├── services.py
+        ├── repositories.py
+        ├── routes.py
+        └── schemas.py
+```
+
+## Criar módulos
+
+```bash
+archforge make module <nome>
+```
+
+## Testes
+
+```bash
+uv run pytest
+```

@@ -1,0 +1,11 @@
+"""Background worker tasks for {{ module_name }}."""
+
+from __future__ import annotations
+
+from {{ package_name }}.app.{{ module_name }}.services import {{ module_class }}Service
+
+
+def process_{{ module_name }}_queue(service: {{ module_class }}Service | None = None) -> int:
+    """Process pending {{ module_name }} jobs. Replace with Celery/ARQ/etc."""
+    svc = service or {{ module_class }}Service()
+    return len(svc.list_items())

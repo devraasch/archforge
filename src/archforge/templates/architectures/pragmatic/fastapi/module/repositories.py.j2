@@ -1,0 +1,27 @@
+"""Persistence layer for {{ module_name }}."""
+
+from __future__ import annotations
+
+from uuid import UUID
+
+from {{ package_name }}.app.{{ module_name }}.entities import {{ module_class }}
+
+
+class {{ module_class }}Repository:
+    """In-memory repository — replace with your database adapter."""
+
+    def __init__(self) -> None:
+        self._store: dict[UUID, {{ module_class }}] = {}
+
+    def list(self) -> list[{{ module_class }}]:
+        return list(self._store.values())
+
+    def get(self, item_id: UUID) -> {{ module_class }} | None:
+        return self._store.get(item_id)
+
+    def add(self, item: {{ module_class }}) -> {{ module_class }}:
+        self._store[item.id] = item
+        return item
+
+    def delete(self, item_id: UUID) -> bool:
+        return self._store.pop(item_id, None) is not None

@@ -1,0 +1,52 @@
+"""HTTP routes for {{ module_name }}."""
+
+from __future__ import annotations
+
+from uuid import UUID
+
+from fastapi import APIRouter, HTTPException, status
+
+from {{ package_name }}.app.{{ module_name }}.schemas import (
+    {{ module_class }}Create,
+    {{ module_class }}Read,
+    {{ module_class }}Update,
+)
+from {{ package_name }}.app.{{ module_name }}.services import {{ module_class }}Service
+
+router = APIRouter()
+service = {{ module_class }}Service()
+
+
+@router.get("/", response_model=list[{{ module_class }}Read])
+def list_{{ module_name }}() -> list[{{ module_class }}Read]:
+    return [{{ module_class }}Read.model_validate(item) for item in service.list_items()]
+
+
+{% if options.crud %}
+@router.post("/", response_model={{ module_class }}Read, status_code=status.HTTP_201_CREATED)
+def create_{{ module_name }}(payload: {{ module_class }}Create) -> {{ module_class }}Read:
+    item = service.create_item(payload)
+    return {{ module_class }}Read.model_validate(item)
+
+
+@router.get("/{item_id}", response_model={{ module_class }}Read)
+def get_{{ module_name }}(item_id: UUID) -> {{ module_class }}Read:
+    item = service.get_item(item_id)
+    if item is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    return {{ module_class }}Read.model_validate(item)
+
+
+@router.patch("/{item_id}", response_model={{ module_class }}Read)
+def update_{{ module_name }}(item_id: UUID, payload: {{ module_class }}Update) -> {{ module_class }}Read:
+    item = service.update_item(item_id, payload)
+    if item is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    return {{ module_class }}Read.model_validate(item)
+
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_{{ module_name }}(item_id: UUID) -> None:
+    if not service.delete_item(item_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+{% endif %}

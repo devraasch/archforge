@@ -1,0 +1,41 @@
+"""FastAPI application entrypoint."""
+
+from __future__ import annotations
+
+import uvicorn
+from fastapi import FastAPI
+
+from {{ package_name }}.app.router import router
+{% if features.observability %}
+from {{ package_name }}.telemetry import setup_telemetry
+{% endif %}
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title="{{ project_name }}",
+        version="0.1.0",
+        docs_url="/docs",
+        redoc_url="/redoc",
+    )
+    app.include_router(router)
+{% if features.observability %}
+    setup_telemetry(app)
+{% endif %}
+    return app
+
+
+app = create_app()
+
+
+def run() -> None:
+    uvicorn.run(
+        "{{ package_name }}.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
+
+
+if __name__ == "__main__":
+    run()
