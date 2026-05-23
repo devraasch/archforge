@@ -65,12 +65,12 @@ def run_init_wizard(default_dir: Path | None = None) -> InitWizardResult:
         "Architecture:",
         choices=[
             questionary.Choice(
-                Architecture.PRAGMATIC.value,
                 "Pragmatic — flat modules (entities, services, routes…)",
+                Architecture.PRAGMATIC.value,
             ),
             questionary.Choice(
-                Architecture.CANONICAL.value,
                 "Canonical — domain / application / infrastructure / interfaces",
+                Architecture.CANONICAL.value,
             ),
         ],
         style=WIZARD_STYLE,
